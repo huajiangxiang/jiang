@@ -214,12 +214,7 @@ function renderReplyLibrary() {
         });
     }
 
-       // 列表未变化时跳过重建
-    if (list._lastItemCount === itemsToRender.length && !list._forceRender) {
-        return;
-    }
-    list._lastItemCount = itemsToRender.length;
-    list._forceRender = false;
+      
     list.innerHTML = '';
     list.className = 'content-list-area';
 
