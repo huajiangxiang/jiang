@@ -549,27 +549,46 @@
         }
     };
 
-    window._commentMoment = function(momentId) {
+   window._commentMoment = function(momentId) {
     const myName = (typeof settings !== 'undefined' && settings.myName) ? settings.myName : '我';
-    const commentText = prompt('输入评论：');
-    if (!commentText || !commentText.trim()) return;
-    const moment = momentsData.moments.find(m => m.id === momentId);
-    if (moment) {
-        moment.comments.push({
-            id: 'comment_' + Date.now(),
-            sender: 'user',
-            text: myName + '：' + commentText.trim(),
-            timestamp: Date.now(),
-            isNew: true
-        });
-        saveMomentsData();
-        refreshMomentsList();
-        updateMomentBadge();
-        showNotification('评论成功', 'success');
-        schedulePartnerReply(momentId);
-    }
+    
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;';
+    overlay.innerHTML = `
+        <div style="background:var(--secondary-bg);border-radius:16px;padding:20px;width:88%;max-width:320px;">
+            <div style="font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:12px;">💬 评论动态</div>
+            <textarea id="_comment_input" rows="3" placeholder="输入评论..." style="width:100%;padding:10px;border:1px solid var(--border-color);border-radius:10px;font-size:14px;background:var(--primary-bg);color:var(--text-primary);outline:none;resize:none;box-sizing:border-box;font-family:var(--font-family);"></textarea>
+            <div style="display:flex;gap:8px;margin-top:12px;">
+                <button id="_comment_cancel" style="flex:1;padding:10px;border:1px solid var(--border-color);border-radius:10px;background:none;color:var(--text-secondary);font-size:13px;">取消</button>
+                <button id="_comment_ok" style="flex:1;padding:10px;border:none;border-radius:10px;background:var(--accent-color);color:#fff;font-size:13px;font-weight:600;">评论</button>
+            </div>
+        </div>`;
+    document.body.appendChild(overlay);
+    
+    overlay.querySelector('#_comment_cancel').onclick = () => overlay.remove();
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    overlay.querySelector('#_comment_ok').onclick = () => {
+        const commentText = overlay.querySelector('#_comment_input').value.trim();
+        overlay.remove();
+        if (!commentText) return;
+        const moment = momentsData.moments.find(m => m.id === momentId);
+        if (moment) {
+            moment.comments.push({
+                id: 'comment_' + Date.now(),
+                sender: 'user',
+                text: myName + '：' + commentText,
+                timestamp: Date.now(),
+                isNew: true
+            });
+            saveMomentsData();
+            refreshMomentsList();
+            updateMomentBadge();
+            showNotification('评论成功', 'success');
+            schedulePartnerReply(momentId);
+        }
+    };
+    overlay.querySelector('#_comment_input').focus();
 };
-
 
     // ==================== 动态设置 ====================
     function openMomentSettings() {
